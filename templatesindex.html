@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Определение местоположения</title>
+</head>
+
+<body>
+    <h2>Определение местоположения</h2>
+
+    <p>
+        Нажмите кнопку и разрешите браузеру передать ваше местоположение.
+    </p>
+
+    <button onclick="getLocation()">
+        Разрешить геолокацию
+    </button>
+
+    <p id="status"></p>
+
+    <script>
+        function getLocation() {
+            const status = document.getElementById("status");
+
+            if (!navigator.geolocation) {
+                status.textContent = "Ваш браузер не поддерживает геолокацию.";
+                return;
+            }
+
+            status.textContent = "Запрашиваем разрешение...";
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const data = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy
+                    };
+
+                    const response = await fetch("/location", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        status.textContent = "Местоположение успешно получено.";
+                    } else {
+                        status.textContent = "Не удалось отправить данные.";
+                    }
+                },
+
+                (error) => {
+                    if (error.code === 1) {
+                        status.textContent =
+                            "Вы запретили доступ к местоположению.";
+                    } else {
+                        status.textContent =
+                            "Не удалось определить местоположение.";
+                    }
+                }
+            );
+        }
+    </script>
+</body>
+</html>
